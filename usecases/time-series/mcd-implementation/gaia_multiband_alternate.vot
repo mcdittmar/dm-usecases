@@ -168,7 +168,7 @@
           <INSTANCE value="1" dmtype="ivoa:integer"/>
         </ATTRIBUTE>
         <ATTRIBUTE dmrole="ds:experiment.ObsDataset.target">
-          <INSTANCE dmref="_tg1"/>
+          <REFERENCE dmref="_tg1"/>
         </ATTRIBUTE>
       </INSTANCE>
     </GLOBALS>
@@ -209,7 +209,7 @@
                       <INSTANCE dmtype="ivoa:real" ref="_obstime"/>
                     </ATTRIBUTE>
                     <ATTRIBUTE dmrole="coords:Coordinate.coordSys">
-                      <INSTANCE dmref="_timesys1"/>
+                      <REFERENCE dmref="_timesys1"/>
                     </ATTRIBUTE>
                   </INSTANCE>
                 </ATTRIBUTE>
