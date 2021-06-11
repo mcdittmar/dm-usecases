@@ -18,11 +18,12 @@
 	  - ARG! This doesn't work in CoordinateSystem case, no unique ID for primary key
           - VM usage; the action scans the PRIMARYKEY value tuples for a match, there is no need to link each key
           - Refine.. since LM introduced PRIMARYKEY, reinstate FOREIGNKEY, use pair instead of just KEY?
-              FOREIGNKEY( @dmtype=<value> @ref=<votable_element> @value=<literal> )
+            I think this can only be in TEMPLATE context, so the argument list is reduced.
+              FOREIGNKEY( @ref=<votable_element> )
       * SUMMARY:
           - KEY dropped in favor of individual PRIMARYKEY/FOREIGNKEY elements
           + PRIMARYKEY( @dmtype=<vodmlid> @ref=<votable_element> @value=<literal> )
-          + FOREIGNKEY( @dmtype=<vodmlid> @ref=<votable_element> @value=<literal> )
+          + FOREIGNKEY( @ref=<votable_element> )
           + REFERENCE( @dmref=<instance> @tableref=<container> ); @tableref utilized FOREIGNKEY within REFERENCE
           * INSTANCE drops @dmref option; references handled by REFERENCE node.
           * ATTRIBUTE now contains one of INSTANCE|COLLECTION|REFERENCE
@@ -42,7 +43,7 @@
     <MODEL name="coords" url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml" />
     <MODEL name="ivoa"   url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml" />
     <GLOBALS ID="_CoordinateSystems">
-      <INSTANCE dmtype="coords:TimeSys" ID="_timesys1">
+      <INSTANCE dmtype="coords:TimeSys" ID="_timesys">
         <PRIMARYKEY dmtype="ivoa:string" value="TCB"/>
         <ATTRIBUTE dmrole="coords:PhysicalCoordSys.frame">
           <INSTANCE dmtype="coords:TimeFrame">
@@ -176,14 +177,14 @@
       <INSTANCE ID="_TimeSeries" dmtype="cube:SparseCube">
         <ATTRIBUTE dmrole="cube:DataProduct.dataset">
           <REFERENCE tableref="_Datasets">
-            <FOREIGNKEY dmtype="ivoa:string" ref="_pksrcid"/>
+            <FOREIGNKEY ref="_pksrcid"/>
           </REFERENCE>
         </ATTRIBUTE>
         <ATTRIBUTE dmrole="cube:SparseCube.data">
           <COLLECTION>
             <JOIN tableref="Results" dmref="_ts_data">
-	      <PRIMARYKEY ref="_pksrcid" foreign="_srcid" />
-	      <PRIMARYKEY ref="_pkband"  foreign="_band" />
+	      <PRIMARYKEY ref="_pksrcid"/>
+	      <PRIMARYKEY ref="_pkband"/>
 	    </JOIN>
           </COLLECTION>
         </ATTRIBUTE>
@@ -209,7 +210,7 @@
                       <INSTANCE dmtype="ivoa:real" ref="_obstime"/>
                     </ATTRIBUTE>
                     <ATTRIBUTE dmrole="coords:Coordinate.coordSys">
-                      <REFERENCE dmref="_timesys1"/>
+                      <REFERENCE dmref="_timesys"/>
                     </ATTRIBUTE>
                   </INSTANCE>
                 </ATTRIBUTE>
@@ -229,7 +230,7 @@
                     </ATTRIBUTE>
                     <ATTRIBUTE dmrole="coords:Coordinate.coordSys">
                       <REFERENCE tableref="_CoordinateSystems">
-                        <FOREIGNKEY dmtype="ivoa:string" ref="_band"/>
+                        <FOREIGNKEY ref="_band"/>
                       </REFERENCE>
                     </ATTRIBUTE>
                   </INSTANCE>
@@ -250,7 +251,7 @@
                     </ATTRIBUTE>
                     <ATTRIBUTE dmrole="coords:Coordinate.coordSys">
                       <REFERENCE tableref="_CoordinateSystems">
-                        <FOREIGNKEY dmtype="ivoa:string" ref="_band"/>
+                        <FOREIGNKEY ref="_band"/>
                       </REFERENCE>
                     </ATTRIBUTE>
                   </INSTANCE>
