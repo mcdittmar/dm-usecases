@@ -28,11 +28,39 @@
           * INSTANCE drops @dmref option; references handled by REFERENCE node.
           * ATTRIBUTE now contains one of INSTANCE|COLLECTION|REFERENCE
 
+    + ISSUE #11: FILTER/JOIN/GROUPBY (focus on FILTER/JOIN)
+      * 20210614: LM suggestion to use FILTER under JOIN with specification
+           <JOIN tableref={target table} dmref={instance_id} >
+             <FILTER>
+               <COL ref={votable_element} value={value} />
+               <COL ref={votable_element} value={value} />
+             </FILTER>  
+           </JOIN>
+      * the COL nodes here replace what had become the PRIMARYKEY nodes, but also the FOREIGNKEY nodes in the target table.
+        this is more in line with the original merged syntax proposal for KEY, 
+        providing foreign key as {ref} and primary key as {value}.
+      * OPTIONS:
+        1) go back to singular KEY
+        2) describe FILTER as a key, rather than containg keys
+             <FILTER ref={votable_element} value={value} \>
+           or
+             <FILTER foreignkey={votable_element} primarykey={votable_element} value={value} \>
+      ** Option 2: matches MIVOT syntax, so is probably the way to go.. but since we currently have need to 
+                   use TABLE1.column as primary key for FILTER, we use the second signature.
 
     TODO:
     + MIVOT request not particularly related to ISSUE #6
         * 20210608: Single GLOBALS node, allow COLLECTION within GLOBALS to group like instances for ORM referencing
 
+    CONSOLIDATEED CHANGE SUMMARY:
+      - KEY dropped in favor of individual PRIMARYKEY/FOREIGNKEY elements
+      + PRIMARYKEY( @dmtype=<vodmlid> @ref=<votable_element> @value=<literal> )
+      + FOREIGNKEY( @ref=<votable_element> )
+      + REFERENCE( @dmref=<instance> @tableref=<container> ); @tableref utilized FOREIGNKEY within REFERENCE
+      * INSTANCE drops @dmref option; references handled by REFERENCE node.
+      * ATTRIBUTE now contains one of INSTANCE|COLLECTION|REFERENCE
+      * FILTER( @foreignkey=<votable_element> primarykey=<votable_element> @value=<literal> ) with no content.
+      * JOIN contains FILTER rather than KEY
 -->
 <VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" version="1.3">
   <VODML>
@@ -156,7 +184,7 @@
         </ATTRIBUTE>
       </INSTANCE>
     </GLOBALS>
-    <GLOBALS ID="_Dataset">
+    <GLOBALS ID="_Datasets">
       <INSTANCE dmtype="ds:experiment.ObsDataset" ID="_ds1">
         <PRIMARYKEY dmtype="ivoa:string" value="5813181197970338560"/>
         <ATTRIBUTE dmrole="ds:dataset.Dataset.dataProductType">
@@ -183,8 +211,8 @@
         <ATTRIBUTE dmrole="cube:SparseCube.data">
           <COLLECTION>
             <JOIN tableref="Results" dmref="_ts_data">
-	      <PRIMARYKEY ref="_pksrcid"/>
-	      <PRIMARYKEY ref="_pkband"/>
+	      <FILTER foreignkey="_srcid" primarykey="_pksrcid" />
+	      <FILTER foreignkey="_band" primarykey="_pkband"  />
 	    </JOIN>
           </COLLECTION>
         </ATTRIBUTE>
@@ -192,11 +220,6 @@
     </TEMPLATES>
     <TEMPLATES tableref="Results">
       <INSTANCE dmtype="cube:NDPoint" ID="_ts_data">
-	<!-- NOTE: in VM syntax, these are within a CONTAINER, not sure if 
-             the expectation is that there can be different sets of FOREIGNKEYs
-             when this instance is accessed from different container objects -->
-        <FOREIGNKEY ref="_srcid" />
-        <FOREIGNKEY ref="_band" />
         <ATTRIBUTE dmrole="cube:NDPoint.observable">
           <INSTANCE dmtype="cube:Observable">
             <ATTRIBUTE dmrole="cube:DataAxis.dependent">
