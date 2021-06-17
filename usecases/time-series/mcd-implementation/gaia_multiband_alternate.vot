@@ -47,6 +47,10 @@
              <FILTER foreignkey={votable_element} primarykey={votable_element} value={value} \>
       ** Option 2: matches MIVOT syntax, so is probably the way to go.. but since we currently have need to 
                    use TABLE1.column as primary key for FILTER, we use the second signature.
+    + ISSUE #3: GROUPBY
+      * Dropping this element from V1.0, there are alternative approaches with the normal elements and this one
+        adds too many complications.  We will wait to see how needs evolve with experience using the other apporoaches.
+
 
     TODO:
     + MIVOT request not particularly related to ISSUE #6
@@ -61,6 +65,7 @@
       * ATTRIBUTE now contains one of INSTANCE|COLLECTION|REFERENCE
       * FILTER( @foreignkey=<votable_element> primarykey=<votable_element> @value=<literal> ) with no content.
       * JOIN contains FILTER rather than KEY
+      - GROUPBY deferred to future version
 -->
 <VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" version="1.3">
   <VODML>
