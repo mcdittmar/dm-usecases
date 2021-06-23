@@ -1,99 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!--
    Annotated by hand to the 'merged' syntax proposal, migrating with discussions
-    + ISSUE #9: GLOBALS/TEMPLATE vs TABLE_MAPPING/TABLE_ROW_TEMPLATE
-      * Keeping GLOBALS/TEMPLATE
-      TODO:
-       + MIVOT request not particularly related to ISSUE #6
-         * 20210608: Single GLOBALS node, allow COLLECTION within GLOBALS to group like instances for ORM referencing (#6)
-
-    + ISSUE #6: Dynamic reference resolution
-      * 20210608: LM suggestion
-        * PRIMARYKEY within INSTANCE; PRIMARYKEY( @dmtype=<vodml-id> @ref=<votable_element>, @value=<literal>)
-          - similar to VM:PRIMARYKEY with PKFIELD absorbed.
-            NOTE: will need multiple PRIMARYKEYs to define the tuple of keys, order will matter.
-        * extract REFERENCE from INSTANCE; REFERENCE(@ref=<votable_element> @tableref=<container of instances to select from> )
-          - if tableref set, choose instance where @ref value == tableref.instance.PRIMARYKEY tuple
-      * 20210608: MCD counter from integrating here.
-        * as defined above, REFERENCE can only be dependent on 1 KEY
-        * suggest pattern more from 'merged' syntax JOIN spec.
-            Action scans the PRIMARYKEY value tuples for a match, ORDER IS IMPORTANT (>1 key)
-            <REFERENCE tableref="_Datasets">
-               <KEY primary="_srckey" foreign="_srcid"/>
-             </REFERENCE>
-	  - ARG! This doesn't work in CoordinateSystem case, no unique ID for primary key
-          - VM usage; the action scans the PRIMARYKEY value tuples for a match, there is no need to link each key
-          - Refine.. since LM introduced PRIMARYKEY, reinstate FOREIGNKEY, use pair instead of just KEY?
-            I think this can only be in TEMPLATE context, so the argument list is reduced.
-              FOREIGNKEY( @ref=<votable_element> )
-      * SUMMARY:
-          - KEY dropped in favor of individual PRIMARYKEY/FOREIGNKEY elements
-          + PRIMARYKEY( @dmtype=<vodmlid> @ref=<votable_element> @value=<literal> )
-          + FOREIGNKEY( @ref=<votable_element> )
-          + REFERENCE( @dmref=<instance> @tableref=<container> ); @tableref utilized FOREIGNKEY within REFERENCE
-          * INSTANCE drops @dmref option; references handled by REFERENCE node.
-          * ATTRIBUTE now contains one of INSTANCE|COLLECTION|REFERENCE
-
-    + ISSUE #11: FILTER/JOIN/GROUPBY (focus on FILTER/JOIN)
-      * 20210614: LM suggestion to use FILTER under JOIN with specification
-           <JOIN tableref={target table} dmref={instance_id} >
-             <FILTER>
-               <COL ref={votable_element} value={value} />
-               <COL ref={votable_element} value={value} />
-             </FILTER>  
-           </JOIN>
-      * the COL nodes here replace what had become the PRIMARYKEY nodes, but also the FOREIGNKEY nodes in the target table.
-        this is more in line with the original merged syntax proposal for KEY, 
-        providing foreign key as {ref} and primary key as {value}.
-      * OPTIONS:
-        1) go back to singular KEY
-        2) describe FILTER as a key, rather than containg keys
-             <FILTER ref={votable_element} value={value} \>
-           or
-             <FILTER foreignkey={votable_element} primarykey={votable_element} value={value} \>
-      ** <FILTER foreignkey={votable_element} primarykey={votable_element} value={value} \>
-      ** PRIMARYKEY/FOREIGNKEY are still required for dynamic reference case.
-
-    + ISSUE #5: Annotation into PARAM|FIELD (ucd,unit,description)
-      * NOT RESOLVED
-        We have a few options, but mainly it is unclear to me that this is a needed feature.. 
-        Since this is currently only a MANGO requirement, I've proposed we tag it as a v1.1 to work 
-        with the MANGO model implementations to finalize the best solution.
-
-    + ISSUE #4: Mapping sexadecimal positions (FIELD with pair of HMS DMS position values as 'string')
-      * [HD]MS -> real conversion is responsibility of parser, not annotation
-      * separation of pair is covered by ISSUE #2.
-     
-    + ISSUE #3: GROUPBY
-      * Dropping this element from V1.0
-        There are alternative approaches with the normal elements and this one adds too many complications.
-        We will wait to see how needs evolve with experience using the other apporoaches.
-
-    + ISSUE #2: mapping element with arraysize >1
-      * add 'arrayindex' attribute to leaf element (currently INSTANCE, pending resolution of #1)
-      * No example in this document.
-
-    + ISSUE #1: roles within MIVOT ATTRIBUTE
-      * TODO
-
-    + ISSUE #7, #8, #10 are project issues, not content.
-
-    + ISSUE #xx: MODEL.IDENTIFIER 
-      Unused element of VM syntax, holds the registry identfier for the model.
-      * Remove until usage thread is exercised/implemented.
-
-    CONSOLIDATEED CHANGE SUMMARY:
-      - KEY dropped in favor of individual PRIMARYKEY/FOREIGNKEY elements
-      + PRIMARYKEY( @dmtype=<vodmlid> @ref=<votable_element> @value=<literal> )
-      + FOREIGNKEY( @ref=<votable_element> )
-      + REFERENCE( @dmref=<instance> @tableref=<container> ); contains optional FOREIGNKEY
-      * INSTANCE drops @dmref option; references handled by REFERENCE node.
-      * INSTANCE contains optional PRIMARYKEY
-      * INSTANCE add @arrayindex attribute
-      * ATTRIBUTE now contains one of INSTANCE|COLLECTION|REFERENCE
-      * FILTER( @foreignkey=<votable_element> primarykey=<votable_element> @value=<literal> ) with no content.
-      * JOIN contains optional FILTER rather than KEY
-      - GROUPBY deferred to future version
 -->
 <VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3" version="1.3">
   <VODML>
@@ -104,229 +11,121 @@
     <MODEL name="coords" url="https://www.ivoa.net/xml/STC/20200908/Coords-v1.0.vo-dml.xml" />
     <MODEL name="ivoa"   url="https://www.ivoa.net/xml/VODML/IVOA-v1.vo-dml.xml" />
     <GLOBALS ID="_CoordinateSystems">
-      <INSTANCE dmtype="coords:TimeSys" ID="_timesys">
+      <INSTANCE ID="_timesys" dmrole="" dmtype="coords:TimeSys">
         <PRIMARYKEY dmtype="ivoa:string" value="TCB"/>
-        <ATTRIBUTE dmrole="coords:PhysicalCoordSys.frame">
-          <INSTANCE dmtype="coords:TimeFrame">
-            <ATTRIBUTE dmrole="coords:TimeFrame.timescale">
-              <INSTANCE value="TCB" dmtype="ivoa:string"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="coords:TimeFrame.refPosition">
-              <INSTANCE dmtype="coords:StdRefLocation">
-                <ATTRIBUTE dmrole="coords:StdRefLocation.position">
-                  <INSTANCE value="BARYCENTER" dmtype="ivoa:string"/>
-                </ATTRIBUTE>
-              </INSTANCE>
-            </ATTRIBUTE>
+        <INSTANCE dmrole="coords:PhysicalCoordSys.frame" dmtype="coords:TimeFrame">
+          <ATTRIBUTE dmrole="coords:TimeFrame.timescale" dmtype="ivoa:string" value="TCB" />
+          <INSTANCE dmrole="coords:TimeFrame.refPosition" dmtype="coords:StdRefLocation">
+            <ATTRIBUTE dmrole="coords:StdRefLocation.position" dmtype="ivoa:string" value="BARYCENTER"/>
           </INSTANCE>
-        </ATTRIBUTE>
+        </INSTANCE>
       </INSTANCE>
-      <INSTANCE dmtype="coords:SpaceSys" ID="_spacesys1">
+      <INSTANCE ID="_spacesys1" dmrole="" dmtype="coords:SpaceSys">
         <PRIMARYKEY dmtype="ivoa:string" value="ICRS"/>
-        <ATTRIBUTE dmrole="coords:PhysicalCoordSys.frame">
-          <INSTANCE dmtype="coords:SpaceFrame">
-            <ATTRIBUTE dmrole="coords:SpaceFrame.spaceRefFrame">
-              <INSTANCE value="ICRS" dmtype="ivoa:string"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="coords:SpaceFrame.equinox">
-              <INSTANCE value="J2015.5" dmtype="coords:Epoch"/>
-            </ATTRIBUTE>
-          </INSTANCE>
-        </ATTRIBUTE>
+        <INSTANCE dmrole="coords:PhysicalCoordSys.frame" dmtype="coords:SpaceFrame">
+          <ATTRIBUTE dmrole="coords:SpaceFrame.spaceRefFrame" dmtype="ivoa:string" value="ICRS"/>
+          <ATTRIBUTE dmrole="coords:SpaceFrame.equinox" dmtype="coords:Epoch" value="J2015.5"/>
+        </INSTANCE>
       </INSTANCE>
-      <INSTANCE dmtype="mango:coordinates.PhotometryCoordSys" ID="_photsys_G">
+      <INSTANCE ID="_photsys_G" dmtype="mango:coordinates.PhotometryCoordSys">
         <PRIMARYKEY dmtype="ivoa:string" value="G"/>
-        <ATTRIBUTE dmrole="coords:PhysicalCoordSys.frame">
-          <INSTANCE dmtype="mango:coordinates.PhotFilter">
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.name">
-              <INSTANCE value="GAIA/GAIA2r.G" dmtype="ivoa:string"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.zeroPointFlux">
-              <INSTANCE value="2.49524e-9" dmtype="ivoa:RealQuantity"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.magnitudeSystem">
-              <INSTANCE value="Vega" dmtype="ivoa:string"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.effectiveWavelength">
-              <INSTANCE value="6246.77" dmtype="ivoa:RealQuantity"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.unit">
-              <INSTANCE value="Angstrom" dmtype="ivoa:Unit"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.bandWidth">
-              <INSTANCE value="4578.32" dmtype="ivoa:real"/>
-            </ATTRIBUTE>
-          </INSTANCE>
-        </ATTRIBUTE>
+        <INSTANCE dmrole="coords:PhysicalCoordSys.frame" dmtype="mango:coordinates.PhotFilter">
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.name" dmtype="ivoa:string" value="GAIA/GAIA2r.G"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.zeroPointFlux" dmtype="ivoa:RealQuantity" value="2.49524e-9"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.magnitudeSystem" dmtype="ivoa:string" value="Vega"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.effectiveWavelength" dmtype="ivoa:RealQuantity" value="6246.77"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.unit" dmtype="ivoa:Unit" value="Angstrom" />
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.bandWidth" dmtype="ivoa:real" value="4578.32"/>
+        </INSTANCE>
       </INSTANCE>
-      <INSTANCE dmtype="mango:coordinates.PhotometryCoordSys" ID="_photsys_RP">
+      <INSTANCE ID="_photsys_RP" dmrole="" dmtype="mango:coordinates.PhotometryCoordSys">
         <PRIMARYKEY dmtype="ivoa:string" value="RP"/>
-        <ATTRIBUTE dmrole="coords:PhysicalCoordSys.frame">
-          <INSTANCE dmtype="mango:coordinates.PhotFilter">
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.name">
-              <INSTANCE value="GAIA/GAIA2r.Grp" dmtype="ivoa:string"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.zeroPointFlux">
-              <INSTANCE value="1.29363e-9" dmtype="ivoa:RealQuantity"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.magnitudeSystem">
-              <INSTANCE value="Vega" dmtype="ivoa:string"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.effectiveWavelength">
-              <INSTANCE value="7740.87" dmtype="ivoa:RealQuantity"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.unit">
-              <INSTANCE value="Angstrom" dmtype="ivoa:Unit"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.bandWidth">
-              <INSTANCE value="2943.72" dmtype="ivoa:real"/>
-            </ATTRIBUTE>
-          </INSTANCE>
-        </ATTRIBUTE>
+        <INSTANCE dmrole="coords:PhysicalCoordSys.frame" dmtype="mango:coordinates.PhotFilter">
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.name" dmtype="ivoa:string" value="GAIA/GAIA2r.Grp"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.zeroPointFlux" dmtype="ivoa:RealQuantity" value="1.29363e-9"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.magnitudeSystem" dmtype="ivoa:string" value="Vega"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.effectiveWavelength" dmtype="ivoa:RealQuantity" value="7740.87"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.unit" dmtype="ivoa:Unit" value="Angstrom"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.bandWidth" dmtype="ivoa:real" value="2943.72"/>
+        </INSTANCE>
       </INSTANCE>
-      <INSTANCE dmtype="mango:coordinates.PhotometryCoordSys" ID="_photsys_BP">
+      <INSTANCE ID="_photsys_BP" dmrole="" dmtype="mango:coordinates.PhotometryCoordSys">
         <PRIMARYKEY dmtype="ivoa:string" value="BP"/>
-        <ATTRIBUTE dmrole="coords:PhysicalCoordSys.frame">
-          <INSTANCE dmtype="mango:coordinates.PhotFilter">
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.name">
-              <INSTANCE value="GAIA/GAIA2r.Gbp" dmtype="ivoa:string"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.zeroPointFlux">
-              <INSTANCE value="4.03528e-9" dmtype="ivoa:RealQuantity"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.magnitudeSystem">
-              <INSTANCE value="Vega" dmtype="ivoa:string"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.effectiveWavelength">
-              <INSTANCE value="5278.58" dmtype="ivoa:RealQuantity"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.unit">
-              <INSTANCE value="Angstrom" dmtype="ivoa:Unit"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.bandWidth">
-              <INSTANCE value="2279.45" dmtype="ivoa:real"/>
-            </ATTRIBUTE>
-          </INSTANCE>
-        </ATTRIBUTE>
+        <INSTANCE dmrole="coords:PhysicalCoordSys.frame" dmtype="mango:coordinates.PhotFilter">
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.name" dmtype="ivoa:string" value="GAIA/GAIA2r.Gbp"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.zeroPointFlux" dmtype="ivoa:RealQuantity" value="4.03528e-9"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.magnitudeSystem" dmtype="ivoa:string" value="Vega"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.effectiveWavelength" dmtype="ivoa:RealQuantity" value="5278.58"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.unit" dmtype="ivoa:Unit" value="Angstrom"/>
+          <ATTRIBUTE dmrole="mango:coordinates.PhotFilter.bandWidth" dmtype="ivoa:real" value="2279.45"/>
+        </INSTANCE>
       </INSTANCE>
     </GLOBALS>
     <GLOBALS ID="_Targets">
-      <INSTANCE dmtype="ds:experiment.Target" ID="_tg1">
-        <ATTRIBUTE dmrole="ds:experiment.BaseTarget.name">
-          <INSTANCE value="5813181197970338560" dmtype="ivoa:string"/>
-        </ATTRIBUTE>
+      <INSTANCE ID="_tg1" dmrole="" dmtype="ds:experiment.Target">
+        <ATTRIBUTE dmrole="ds:experiment.BaseTarget.name" dmtype="ivoa:string" value="5813181197970338560"/>
       </INSTANCE>
     </GLOBALS>
     <GLOBALS ID="_Datasets">
-      <INSTANCE dmtype="ds:experiment.ObsDataset" ID="_ds1">
+      <INSTANCE ID="_ds1" dmrole="" dmtype="ds:experiment.ObsDataset">
         <PRIMARYKEY dmtype="ivoa:string" value="5813181197970338560"/>
-        <ATTRIBUTE dmrole="ds:dataset.Dataset.dataProductType">
-          <INSTANCE value="TIMESERIES" dmtype="ds:dataset.DataProductType"/>
-        </ATTRIBUTE>
-        <ATTRIBUTE dmrole="ds:dataset.Dataset.dataProductSubtype">
-          <INSTANCE value="GAIA Time Series" dmtype="ivoa:string"/>
-        </ATTRIBUTE>
-        <ATTRIBUTE dmrole="ds:experiment.ObsDataset.calibLevel">
-          <INSTANCE value="1" dmtype="ivoa:integer"/>
-        </ATTRIBUTE>
-        <ATTRIBUTE dmrole="ds:experiment.ObsDataset.target">
-          <REFERENCE dmref="_tg1"/>
-        </ATTRIBUTE>
+        <ATTRIBUTE dmrole="ds:dataset.Dataset.dataProductType" dmtype="ds:dataset.DataProductType" value="TIMESERIES"/>
+        <ATTRIBUTE dmrole="ds:dataset.Dataset.dataProductSubtype" dmtype="ivoa:string" value="GAIA Time Series"/>
+        <ATTRIBUTE dmrole="ds:experiment.ObsDataset.calibLevel" dmtype="ivoa:integer" value="1"/>
+        <REFERENCE dmrole="ds:experiment.ObsDataset.target" dmref="_tg1"/>
       </INSTANCE>
     </GLOBALS>
     <TEMPLATES tableref="_PKTable">
-      <INSTANCE ID="_TimeSeries" dmtype="cube:SparseCube">
-        <ATTRIBUTE dmrole="cube:DataProduct.dataset">
-          <REFERENCE tableref="_Datasets">
-            <FOREIGNKEY ref="_pksrcid"/>
-          </REFERENCE>
-        </ATTRIBUTE>
-        <ATTRIBUTE dmrole="cube:SparseCube.data">
-          <COLLECTION>
-            <JOIN tableref="Results" dmref="_ts_data">
-	      <FILTER foreignkey="_srcid" primarykey="_pksrcid" />
-	      <FILTER foreignkey="_band" primarykey="_pkband"  />
-	    </JOIN>
-          </COLLECTION>
-        </ATTRIBUTE>
+      <INSTANCE ID="_TimeSeries" dmrole="" dmtype="cube:SparseCube">
+        <REFERENCE dmrole="cube:DataProduct.dataset" tableref="_Datasets">
+          <FOREIGNKEY ref="_pksrcid"/>
+        </REFERENCE>
+        <COLLECTION dmrole="cube:SparseCube.data">
+          <JOIN tableref="Results" dmref="_ts_data">
+	    <FILTER foreignkey="_srcid" primarykey="_pksrcid" />
+	    <FILTER foreignkey="_band" primarykey="_pkband"  />
+	  </JOIN>
+        </COLLECTION>
       </INSTANCE>
     </TEMPLATES>
     <TEMPLATES tableref="Results">
-      <INSTANCE dmtype="cube:NDPoint" ID="_ts_data">
-        <ATTRIBUTE dmrole="cube:NDPoint.observable">
-          <INSTANCE dmtype="cube:Observable">
-            <ATTRIBUTE dmrole="cube:DataAxis.dependent">
-              <INSTANCE value="False" dmtype="ivoa:boolean"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="cube:MeasurementAxis.measure">
-              <INSTANCE dmtype="meas:Time">
-                <ATTRIBUTE dmrole="meas:Time.coord">
-                  <INSTANCE dmtype="coords:MJD">
-                    <ATTRIBUTE dmrole="coords:MJD.date">
-                      <INSTANCE dmtype="ivoa:real" ref="_obstime"/>
-                    </ATTRIBUTE>
-                    <ATTRIBUTE dmrole="coords:Coordinate.coordSys">
-                      <REFERENCE dmref="_timesys"/>
-                    </ATTRIBUTE>
-                  </INSTANCE>
-                </ATTRIBUTE>
-              </INSTANCE>
-            </ATTRIBUTE>
+      <INSTANCE ID="_ts_data" dmrole="" dmtype="cube:NDPoint">
+        <INSTANCE dmrole="cube:NDPoint.observable" dmtype="cube:Observable">
+          <ATTRIBUTE dmrole="cube:DataAxis.dependent" dmtype="ivoa:boolean" value="False"/>
+          <INSTANCE dmrole="cube:MeasurementAxis.measure" dmtype="meas:Time">
+            <INSTANCE dmrole="meas:Time.coord" dmtype="coords:MJD">
+              <ATTRIBUTE dmrole="coords:MJD.date" dmtype="ivoa:real" ref="_obstime"/>
+              <REFERENCE dmrole="coords:Coordinate.coordSys" dmref="_timesys"/>
+            </INSTANCE>
           </INSTANCE>
-          <INSTANCE dmtype="cube:Observable">
-            <ATTRIBUTE dmrole="cube:DataAxis.dependent">
-              <INSTANCE value="True" dmtype="ivoa:boolean"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="cube:MeasurementAxis.measure">
-              <INSTANCE dmtype="meas:GenericMeasure">
-                <ATTRIBUTE dmrole="meas:GenericMeasure.coord">
-                  <INSTANCE dmtype="coords:PhysicalCoordinate">
-                    <ATTRIBUTE dmrole="coords:PhysicalCoordinate.cval">
-                      <INSTANCE dmtype="ivoa:RealQuantity" ref="_mag"/>
-                    </ATTRIBUTE>
-                    <ATTRIBUTE dmrole="coords:Coordinate.coordSys">
-                      <REFERENCE tableref="_CoordinateSystems">
-                        <FOREIGNKEY ref="_band"/>
-                      </REFERENCE>
-                    </ATTRIBUTE>
-                  </INSTANCE>
-                </ATTRIBUTE>
-              </INSTANCE>
-            </ATTRIBUTE>
+        </INSTANCE>
+        <INSTANCE dmrole="cube:NDPoint.observable" dmtype="cube:Observable">
+          <ATTRIBUTE dmrole="cube:DataAxis.dependent" dmtype="ivoa:boolean" value="True"/>
+          <INSTANCE dmrole="cube:MeasurementAxis.measure" dmtype="meas:GenericMeasure">
+            <INSTANCE dmrole="meas:GenericMeasure.coord" dmtype="coords:PhysicalCoordinate">
+              <ATTRIBUTE dmrole="coords:PhysicalCoordinate.cval" dmtype="ivoa:RealQuantity" ref="_mag"/>
+              <REFERENCE dmrole="coords:Coordinate.coordSys" tableref="_CoordinateSystems">
+                <FOREIGNKEY ref="_band"/>
+              </REFERENCE>
+            </INSTANCE>
           </INSTANCE>
-          <INSTANCE dmtype="cube:Observable">
-            <ATTRIBUTE dmrole="cube:DataAxis.dependent">
-              <INSTANCE value="True" dmtype="ivoa:boolean"/>
-            </ATTRIBUTE>
-            <ATTRIBUTE dmrole="cube:MeasurementAxis.measure">
-              <INSTANCE dmtype="meas:GenericMeasure">
-                <ATTRIBUTE dmrole="meas:GenericMeasure.coord">
-                  <INSTANCE dmtype="coords:PhysicalCoordinate">
-                    <ATTRIBUTE dmrole="coords:PhysicalCoordinate.cval">
-                      <INSTANCE dmtype="ivoa:RealQuantity" ref="_flux"/>
-                    </ATTRIBUTE>
-                    <ATTRIBUTE dmrole="coords:Coordinate.coordSys">
-                      <REFERENCE tableref="_CoordinateSystems">
-                        <FOREIGNKEY ref="_band"/>
-                      </REFERENCE>
-                    </ATTRIBUTE>
-                  </INSTANCE>
-                </ATTRIBUTE>
-                <ATTRIBUTE dmrole="meas:Measure.error">
-                  <INSTANCE dmtype="meas:Error">
-                    <ATTRIBUTE dmrole="meas:Error.statError">
-                      <INSTANCE dmtype="meas:Symmetrical">
-                        <ATTRIBUTE dmrole="meas:Symmetrical.radius">
-                          <INSTANCE dmtype="ivoa:RealQuantity" ref="_fluxerr"/>
-                        </ATTRIBUTE>
-                      </INSTANCE>
-                    </ATTRIBUTE>
-                  </INSTANCE>
-                </ATTRIBUTE>
+        </INSTANCE>
+        <INSTANCE dmrole="cube:NDPoint.observable" dmtype="cube:Observable">
+          <ATTRIBUTE dmrole="cube:DataAxis.dependent" dmtype="ivoa:boolean" value="True"/>
+          <INSTANCE dmrole="cube:MeasurementAxis.measure" dmtype="meas:GenericMeasure">
+            <INSTANCE dmrole="meas:GenericMeasure.coord" dmtype="coords:PhysicalCoordinate">
+              <ATTRIBUTE dmrole="coords:PhysicalCoordinate.cval" dmtype="ivoa:RealQuantity" ref="_flux"/>
+              <REFERENCE dmrole="coords:Coordinate.coordSys" tableref="_CoordinateSystems">
+                <FOREIGNKEY ref="_band"/>
+              </REFERENCE>
+            </INSTANCE>
+            <INSTANCE dmrole="meas:Measure.error" dmtype="meas:Error">
+              <INSTANCE dmrole="meas:Error.statError" dmtype="meas:Symmetrical">
+                <ATTRIBUTE dmrole="meas:Symmetrical.radius" dmtype="ivoa:RealQuantity" ref="_fluxerr"/>
               </INSTANCE>
-            </ATTRIBUTE>
+            </INSTANCE>
           </INSTANCE>
-        </ATTRIBUTE>
+        </INSTANCE>
       </INSTANCE>
     </TEMPLATES>
   </VODML>
